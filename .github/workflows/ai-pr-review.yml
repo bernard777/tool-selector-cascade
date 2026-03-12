@@ -1,0 +1,51 @@
+name: AI PR Review
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+  # Allow manual trigger for re-analysis
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to review
+        required: true
+        type: number
+
+permissions:
+  pull-requests: write   # Post reviews and comments
+  contents: read         # Read repository code
+
+jobs:
+  ai-review:
+    name: AI Code Review (Claude)
+    runs-on: ubuntu-latest
+    # Skip draft PRs unless manually triggered
+    if: github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch enough history for diff computation
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install AI reviewer dependencies
+        run: |
+          pip install anthropic requests
+
+      - name: Run AI PR Reviewer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python .github/scripts/ai_pr_reviewer.py \
+            --pr "$PR_NUMBER" \
+            --repo "$REPO"

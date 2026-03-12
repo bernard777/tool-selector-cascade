@@ -3,8 +3,14 @@
 > A 3-level cascading tool selector for AI agents.
 > **Filter 1 000 tools down to the 1 most relevant** in ~450 ms at ~$0.0001/call.
 
-[![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org)
+[![CI](https://github.com/bernard777/tool-selector-cascade/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/bernard777/tool-selector-cascade/actions/workflows/ci.yml)
+[![Security](https://github.com/bernard777/tool-selector-cascade/actions/workflows/security.yml/badge.svg?branch=master)](https://github.com/bernard777/tool-selector-cascade/actions/workflows/security.yml)
+[![PyPI version](https://img.shields.io/pypi/v/tool-selector-cascade.svg)](https://pypi.org/project/tool-selector-cascade/)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![codecov](https://codecov.io/gh/bernard777/tool-selector-cascade/branch/master/graph/badge.svg)](https://codecov.io/gh/bernard777/tool-selector-cascade)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://pre-commit.com)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 ---
 

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / Discussion
+    url: https://github.com/bernard777/tool-selector-cascade/discussions
+    about: For usage questions and help, please use GitHub Discussions.
+  - name: Security Vulnerability
+    url: https://github.com/bernard777/tool-selector-cascade/security/advisories/new
+    about: Report security vulnerabilities privately via the Security Advisory form.

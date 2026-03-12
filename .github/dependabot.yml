@@ -1,0 +1,57 @@
+version: 2
+updates:
+  # Python dependencies (pip ecosystem)
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    target-branch: dev
+    labels:
+      - "dependencies"
+      - "security"
+    groups:
+      # Group all non-security updates together to reduce PR noise
+      dev-dependencies:
+        patterns:
+          - "pytest*"
+          - "mypy"
+          - "ruff"
+          - "black"
+          - "isort"
+          - "bandit"
+          - "pip-audit"
+          - "build"
+          - "pre-commit"
+      runtime-dependencies:
+        patterns:
+          - "sentence-transformers"
+          - "numpy"
+      llm-providers:
+        patterns:
+          - "anthropic"
+          - "openai"
+          - "google-generativeai"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    target-branch: dev
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(actions)"
+      include: "scope"

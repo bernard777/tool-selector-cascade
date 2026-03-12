@@ -1,0 +1,78 @@
+---
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "feat: <short description>"
+labels: ["enhancement", "needs-triage"]
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature!
+        Please describe the problem you're trying to solve — not just the solution.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: |
+        What problem does this feature solve? What limitation are you hitting?
+        Example: "When I have 2000 tools, Level 1 takes >200 ms and I have no way to configure..."
+      placeholder: "I'm frustrated when ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like. Include API design if relevant.
+      render: python
+      placeholder: |
+        # Example of the API I'd like to see
+        from tool_selector_cascade import CascadeSelector, CascadeConfig
+
+        selector = CascadeSelector(CascadeConfig(
+            new_option=True,
+        ))
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you tried any workarounds? Describe other solutions you've considered.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected Area
+      multiple: true
+      options:
+        - Level 1 (Embedding)
+        - Level 2 (Reranker)
+        - Level 3 (Micro-LLM / new provider)
+        - Configuration / CascadeConfig
+        - CascadeSelector orchestration
+        - Public API (select_tools_for_intent, warm_up)
+        - Metrics / SelectionMetrics
+        - Documentation
+        - New LLM provider
+        - Performance
+        - Other
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (from your perspective)
+      options:
+        - Nice to have
+        - Would improve my workflow significantly
+        - Blocking — I cannot use the library without this
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Screenshots, benchmarks, links to related issues or discussions.

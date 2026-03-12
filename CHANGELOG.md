@@ -7,6 +7,40 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- CI/CD pipeline (`.github/workflows/ci.yml`): lint (ruff, black, isort), type
+  check (mypy strict), multi-Python tests (3.11/3.12/3.13) with ≥80% coverage
+  gate, wheel build validation.
+- Security workflow (`.github/workflows/security.yml`): Bandit SAST, pip-audit
+  CVE scan, CodeQL deep analysis, dependency-review on PRs, TruffleHog secret scan.
+- Release workflow (`.github/workflows/release.yml`): automated PyPI publishing
+  via Trusted Publisher (OIDC), GitHub Release creation with CHANGELOG excerpt.
+- AI PR Reviewer (`.github/workflows/ai-pr-review.yml` +
+  `.github/scripts/ai_pr_reviewer.py`): Claude-powered review across 5 dimensions
+  (architecture, security, code quality, tests, documentation). Auto-approves or
+  requests changes on every PR targeting `master`.
+- Dependabot configuration for pip and GitHub Actions (weekly, targets `dev`).
+- `CONTRIBUTING.md`: branch strategy, coding standards, test conventions, PR process.
+- `CODE_OF_CONDUCT.md`: Contributor Covenant 2.1.
+- `SECURITY.md`: supported versions, vulnerability reporting, response SLA.
+- GitHub issue templates: bug report and feature request (YAML forms).
+- GitHub PR template with quality checklist and security checklist.
+- Pre-commit configuration (`.pre-commit-config.yaml`): black, isort, ruff,
+  mypy, bandit, pre-commit-hooks, commitizen.
+
+### Changed
+
+- `pyproject.toml`: corrected repository URLs (now point to `bernard777/`),
+  added Python 3.13 classifier, added dev tooling dependencies (black, isort,
+  bandit, pip-audit, pre-commit, build).
+- `README.md`: added CI, Security, PyPI, Codecov, pre-commit and Contributor
+  Covenant badges.
+
+---
+
 ## [0.1.1] - 2026-03-12
 
 ### Fixed

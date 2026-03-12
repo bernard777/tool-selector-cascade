@@ -15,10 +15,14 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 dependencies = [
     "numpy>=1.24.0",
@@ -42,12 +46,19 @@ dev = [
     "pytest-cov>=4.0.0",
     "mypy>=1.0.0",
     "ruff>=0.1.0",
+    "black>=24.0.0",
+    "isort>=5.13.0",
+    "bandit[sarif]>=1.7.0",
+    "pip-audit>=2.7.0",
+    "pre-commit>=3.7.0",
+    "build>=1.2.0",
 ]
 
 [project.urls]
-Repository = "https://github.com/tool-selector-cascade/tool-selector-cascade"
-Documentation = "https://github.com/tool-selector-cascade/tool-selector-cascade#readme"
-Issues = "https://github.com/tool-selector-cascade/tool-selector-cascade/issues"
+Repository = "https://github.com/bernard777/tool-selector-cascade"
+Documentation = "https://github.com/bernard777/tool-selector-cascade#readme"
+Issues = "https://github.com/bernard777/tool-selector-cascade/issues"
+Changelog = "https://github.com/bernard777/tool-selector-cascade/blob/master/CHANGELOG.md"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tool_selector_cascade"]
