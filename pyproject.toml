@@ -1,0 +1,69 @@
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tool-selector-cascade"
+version = "0.1.1"
+description = "3-level cascading tool selector for AI agents: embedding → reranker → micro-LLM"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Jean Bernard NDONGO AMBASSA", email = "ndongoambassa7@gmail.com" }]
+requires-python = ">=3.11"
+keywords = ["ai", "agents", "rag", "tool-selection", "embeddings", "reranker", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+level1 = ["sentence-transformers>=3.0.0"]
+level2 = ["sentence-transformers>=3.0.0"]
+level3-openai = ["openai>=1.7.0"]
+level3-anthropic = ["anthropic>=0.75.0"]
+level3-google = ["google-generativeai>=0.3.0"]
+all = [
+    "sentence-transformers>=3.0.0",
+    "openai>=1.7.0",
+    "anthropic>=0.75.0",
+    "google-generativeai>=0.3.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.urls]
+Repository = "https://github.com/tool-selector-cascade/tool-selector-cascade"
+Documentation = "https://github.com/tool-selector-cascade/tool-selector-cascade#readme"
+Issues = "https://github.com/tool-selector-cascade/tool-selector-cascade/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tool_selector_cascade"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
