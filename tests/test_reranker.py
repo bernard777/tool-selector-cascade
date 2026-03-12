@@ -1,11 +1,10 @@
-﻿"""Unit tests for the Level 2 cross-encoder reranker (RerankerL2)."""
+"""Unit tests for the Level 2 cross-encoder reranker (RerankerL2)."""
+
 from __future__ import annotations
 
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 
 from tool_selector_cascade.levels.reranker import RerankerL2
 
@@ -20,9 +19,7 @@ def _make_tool(name: str, description: str = "") -> MagicMock:
 class TestRerankerL2Rerank:
     def test_returns_empty_for_empty_tools(self) -> None:
         reranker = RerankerL2()
-        with patch(
-            "tool_selector_cascade.levels.reranker._get_reranker", return_value=None
-        ):
+        with patch("tool_selector_cascade.levels.reranker._get_reranker", return_value=None):
             result, metrics = reranker.rerank("intent", [])
         assert result == []
         assert metrics.input_count == 0
@@ -30,9 +27,7 @@ class TestRerankerL2Rerank:
     def test_fallback_when_model_unavailable(self) -> None:
         reranker = RerankerL2(top_k=3)
         tools = [_make_tool(f"t_{i}") for i in range(8)]
-        with patch(
-            "tool_selector_cascade.levels.reranker._get_reranker", return_value=None
-        ):
+        with patch("tool_selector_cascade.levels.reranker._get_reranker", return_value=None):
             result, metrics = reranker.rerank("test", tools)
         assert len(result) <= 3
         assert metrics.skipped is True
@@ -107,4 +102,3 @@ class TestRerankerL2Rerank:
 
         assert len(result) > 0
         assert metrics.error is not None
-

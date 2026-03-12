@@ -1,4 +1,4 @@
-﻿"""Basic usage examples for tool-selector-cascade.
+"""Basic usage examples for tool-selector-cascade.
 
 Run this script (after installing the package with ``pip install -e .[all]``)
 to see the cascade in action with mock tools.
@@ -9,6 +9,7 @@ Usage::
     pip install -e .[all]
     python examples/basic_usage.py
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -58,7 +59,7 @@ ALL_TOOLS = [
 
 def demo_sync() -> None:
     """Demonstrate synchronous Level 1 + 2 selection."""
-    from tool_selector_cascade import CascadeSelector, CascadeConfig
+    from tool_selector_cascade import CascadeConfig, CascadeSelector
 
     print("\n=== Synchronous selection (Level 1 + 2) ===")
 
@@ -86,7 +87,7 @@ def demo_sync() -> None:
 
 async def demo_async() -> None:
     """Demonstrate the full 3-level async cascade (requires API key)."""
-    from tool_selector_cascade import CascadeSelector, CascadeConfig
+    from tool_selector_cascade import CascadeConfig, CascadeSelector
 
     print("\n=== Async full cascade (Level 1 + 2 + 3) ===")
     print("Note: Level 3 will be skipped if ANTHROPIC_API_KEY is not set.")
@@ -136,4 +137,3 @@ if __name__ == "__main__":
     demo_drop_in_replacement()
     demo_sync()
     asyncio.run(demo_async())
-

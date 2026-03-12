@@ -1,11 +1,10 @@
-﻿"""Unit tests for the Level 1 embedding filter (EmbedderL1)."""
+"""Unit tests for the Level 1 embedding filter (EmbedderL1)."""
+
 from __future__ import annotations
 
-from typing import Any, List
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-import pytest
 
 import tool_selector_cascade.levels.embedder as _emb_mod
 from tool_selector_cascade.levels.embedder import EmbedderL1, _pool_cache_key
@@ -36,9 +35,7 @@ class TestEmbedderL1Filter:
     def test_fallback_when_model_unavailable(self) -> None:
         embedder = EmbedderL1(top_k=5, min_pool=3)
         tools = [_make_tool(f"tool_{i}") for i in range(10)]
-        with patch(
-            "tool_selector_cascade.levels.embedder._get_model", return_value=None
-        ):
+        with patch("tool_selector_cascade.levels.embedder._get_model", return_value=None):
             result, metrics = embedder.filter("test", tools)
         assert len(result) <= 5
         assert metrics.skipped is True
@@ -52,13 +49,11 @@ class TestEmbedderL1Filter:
         # Return valid normalised embeddings of shape (N, D) or (1, D)
         mock_model.encode.side_effect = [
             np.random.rand(10, 64).astype(np.float32),  # pool encoding
-            np.random.rand(1, 64).astype(np.float32),   # intent encoding -- first call
-            np.random.rand(1, 64).astype(np.float32),   # intent encoding -- second call
+            np.random.rand(1, 64).astype(np.float32),  # intent encoding -- first call
+            np.random.rand(1, 64).astype(np.float32),  # intent encoding -- second call
         ]
 
-        with patch(
-            "tool_selector_cascade.levels.embedder._get_model", return_value=mock_model
-        ):
+        with patch("tool_selector_cascade.levels.embedder._get_model", return_value=mock_model):
             embedder.filter("first call", tools)
             first_encode_count = mock_model.encode.call_count  # should be 2 (pool + intent)
             embedder.filter("second call", tools)  # same pool -> cache hit
@@ -82,9 +77,7 @@ class TestEmbedderL1Filter:
         mock_model = MagicMock()
         mock_model.encode.side_effect = [pool_emb, intent_emb]  # shape (1,8) so [0] gives (8,)
 
-        with patch(
-            "tool_selector_cascade.levels.embedder._get_model", return_value=mock_model
-        ):
+        with patch("tool_selector_cascade.levels.embedder._get_model", return_value=mock_model):
             result, _ = embedder.filter("intent", tools, forced_indices=forced)
 
         result_indices = [tools.index(t) for t in result]
@@ -104,9 +97,7 @@ class TestEmbedderL1Filter:
         mock_model = MagicMock()
         mock_model.encode.side_effect = [pool_emb, intent_emb]
 
-        with patch(
-            "tool_selector_cascade.levels.embedder._get_model", return_value=mock_model
-        ):
+        with patch("tool_selector_cascade.levels.embedder._get_model", return_value=mock_model):
             result, metrics = embedder.filter("intent", tools)
 
         assert metrics.output_count == len(result)
@@ -142,9 +133,7 @@ class TestPoolCacheKey:
 class TestWarmUp:
     def test_warm_up_returns_false_when_model_unavailable(self) -> None:
         embedder = EmbedderL1()
-        with patch(
-            "tool_selector_cascade.levels.embedder._get_model", return_value=None
-        ):
+        with patch("tool_selector_cascade.levels.embedder._get_model", return_value=None):
             result = embedder.warm_up()
         assert result is False
 
@@ -156,11 +145,8 @@ class TestWarmUp:
         mock_model = MagicMock()
         mock_model.encode.return_value = np.zeros((5, 8), dtype=np.float32)
 
-        with patch(
-            "tool_selector_cascade.levels.embedder._get_model", return_value=mock_model
-        ):
+        with patch("tool_selector_cascade.levels.embedder._get_model", return_value=mock_model):
             result = embedder.warm_up(tools=tools)
 
         assert result is True
         assert len(_emb_mod._embedding_cache) > 0
-

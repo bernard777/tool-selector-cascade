@@ -1,4 +1,4 @@
-﻿"""CascadeSelector -- 3-level tool selection pipeline.
+"""CascadeSelector -- 3-level tool selection pipeline.
 
 Orchestrates three successive levels that progressively narrow a large tool
 pool down to the single most relevant tool for a given user intent.
@@ -42,11 +42,13 @@ Example
     best_tool = result[0]
     print(metrics.as_dict())
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Generic, List, Optional, Sequence, Tuple, TypeVar
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 
 from tool_selector_cascade.config import CascadeConfig
 from tool_selector_cascade.levels.embedder import EmbedderL1
@@ -70,7 +72,7 @@ class CascadeSelector(Generic[T]):
         defaults if not provided.
     """
 
-    def __init__(self, config: Optional[CascadeConfig] = None) -> None:
+    def __init__(self, config: CascadeConfig | None = None) -> None:
         self.config: CascadeConfig = config or CascadeConfig()
         self._embedder: EmbedderL1[Any] = EmbedderL1(
             model_name=self.config.embedder_model,
@@ -92,7 +94,7 @@ class CascadeSelector(Generic[T]):
     # Warm-up
     # ------------------------------------------------------------------
 
-    def warm_up(self, tools: Optional[Sequence[Any]] = None) -> bool:
+    def warm_up(self, tools: Sequence[Any] | None = None) -> bool:
         """Pre-load all local models (Level 1 + Level 2).
 
         Calling this once at application startup in a background thread
@@ -118,17 +120,14 @@ class CascadeSelector(Generic[T]):
     # Helpers
     # ------------------------------------------------------------------
 
-    def _forced_indices(self, tools: Sequence[Any]) -> List[int]:
+    def _forced_indices(self, tools: Sequence[Any]) -> list[int]:
         """Return indices of tools whose names match *always_include_prefixes*."""
         if not self.config.always_include_prefixes:
             return []
         return [
             i
             for i, t in enumerate(tools)
-            if any(
-                extract_tool_name(t).startswith(p)
-                for p in self.config.always_include_prefixes
-            )
+            if any(extract_tool_name(t).startswith(p) for p in self.config.always_include_prefixes)
         ]
 
     # ------------------------------------------------------------------
@@ -140,8 +139,8 @@ class CascadeSelector(Generic[T]):
         intent: str,
         tools: Sequence[T],
         *,
-        top_k: Optional[int] = None,
-    ) -> Tuple[List[T], SelectionMetrics]:
+        top_k: int | None = None,
+    ) -> tuple[list[T], SelectionMetrics]:
         """Run Level 1 (embedding) and Level 2 (reranker) synchronously.
 
         Level 3 (LLM) is NOT invoked here.  Use :meth:`aselect` for the full
@@ -171,9 +170,7 @@ class CascadeSelector(Generic[T]):
         forced = self._forced_indices(tools)
 
         # ── Level 1: Embedding ───────────────────────────────────────────
-        l1_result, l1_metrics = self._embedder.filter(
-            intent, tools, forced_indices=forced
-        )
+        l1_result, l1_metrics = self._embedder.filter(intent, tools, forced_indices=forced)
         sm.add_level("level1_embedding", l1_metrics)
 
         if not self.config.reranker_enabled:
@@ -202,7 +199,7 @@ class CascadeSelector(Generic[T]):
         self,
         intent: str,
         tools: Sequence[T],
-    ) -> Tuple[List[T], SelectionMetrics]:
+    ) -> tuple[list[T], SelectionMetrics]:
         """Run the full 3-level cascade asynchronously.
 
         Parameters
@@ -229,4 +226,3 @@ class CascadeSelector(Generic[T]):
         sm.final_count = len(l3_result)
 
         return l3_result, sm
-

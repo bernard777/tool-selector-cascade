@@ -1,4 +1,4 @@
-﻿"""Configuration dataclass for :class:`CascadeSelector`.
+"""Configuration dataclass for :class:`CascadeSelector`.
 
 All fields expose sensible defaults matching the recommended model sizes
 described in the package README.  Override only what you need::
@@ -9,10 +9,10 @@ described in the package README.  Override only what you need::
         reranker_top_k=3,
     )
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
 @dataclass
@@ -66,11 +66,10 @@ class CascadeConfig:
     # Level 3 -- Micro-LLM
     llm_provider: str = "anthropic"
     llm_model: str = "claude-haiku-4-5"
-    llm_api_key: Optional[str] = None
+    llm_api_key: str | None = None
     llm_enabled: bool = True
     llm_timeout: float = 30.0
 
     # General
-    always_include_prefixes: List[str] = field(default_factory=list)
+    always_include_prefixes: list[str] = field(default_factory=list)
     min_pool_size: int = 5
-

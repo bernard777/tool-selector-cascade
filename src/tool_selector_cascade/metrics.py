@@ -1,4 +1,4 @@
-﻿"""Metrics collection for the cascade selector pipeline.
+"""Metrics collection for the cascade selector pipeline.
 
 Tracks latency and estimated cost for each cascade level so callers can
 monitor performance and set up alerts without adding external dependencies.
@@ -21,11 +21,12 @@ Example
     #   },
     # }
 """
+
 from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional
+from typing import Any
 
 
 @dataclass
@@ -53,7 +54,7 @@ class LevelMetrics:
     output_count: int = 0
     cost_usd: float = 0.0
     skipped: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass
@@ -79,7 +80,7 @@ class SelectionMetrics:
     total_cost_usd: float = 0.0
     input_pool_size: int = 0
     final_count: int = 0
-    levels: Dict[str, LevelMetrics] = field(default_factory=dict)
+    levels: dict[str, LevelMetrics] = field(default_factory=dict)
 
     def add_level(self, name: str, metrics: LevelMetrics) -> None:
         """Register metrics for one level and accumulate totals."""
@@ -87,7 +88,7 @@ class SelectionMetrics:
         self.total_latency_ms += metrics.latency_ms
         self.total_cost_usd += metrics.cost_usd
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Return a JSON-serialisable representation of these metrics."""
         return {
             "total_latency_ms": round(self.total_latency_ms, 1),
@@ -101,9 +102,7 @@ class SelectionMetrics:
                     "output": m.output_count,
                     "cost_usd": round(m.cost_usd, 8),
                     "skipped": m.skipped,
-                    **({
-                        "error": m.error
-                    } if m.error else {}),
+                    **({"error": m.error} if m.error else {}),
                 }
                 for name, m in self.levels.items()
             },
@@ -126,10 +125,9 @@ class Timer:
         self._start: float = 0.0
         self.elapsed_ms: float = 0.0
 
-    def __enter__(self) -> "Timer":
+    def __enter__(self) -> Timer:
         self._start = time.perf_counter()
         return self
 
     def __exit__(self, *args: Any) -> None:
         self.elapsed_ms = (time.perf_counter() - self._start) * 1000.0
-

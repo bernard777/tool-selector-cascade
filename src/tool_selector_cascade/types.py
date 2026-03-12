@@ -1,4 +1,4 @@
-﻿"""Protocol definitions and duck-typing helpers for tool representations.
+"""Protocol definitions and duck-typing helpers for tool representations.
 
 This module defines the interfaces that ``tool_selector_cascade`` uses to interact
 with tool objects without imposing any concrete class dependency.  Both
@@ -20,6 +20,7 @@ Examples
 >>> tool_as_text({"name": "web_search", "description": "Search the web"})
 'web_search: Search the web'
 """
+
 from __future__ import annotations
 
 from typing import Any, Protocol, runtime_checkable
@@ -56,10 +57,7 @@ def extract_tool_name(tool: Any) -> str:
     if isinstance(tool, dict):
         d: dict[str, Any] = tool
         return (
-            d.get("name")
-            or d.get("technical_name")
-            or (d.get("function") or {}).get("name")
-            or ""
+            d.get("name") or d.get("technical_name") or (d.get("function") or {}).get("name") or ""
         ) or ""
     return getattr(tool, "name", "") or ""
 
@@ -79,11 +77,7 @@ def extract_tool_description(tool: Any) -> str:
     """
     if isinstance(tool, dict):
         d: dict[str, Any] = tool
-        return (
-            d.get("description")
-            or (d.get("function") or {}).get("description")
-            or ""
-        ) or ""
+        return (d.get("description") or (d.get("function") or {}).get("description") or "") or ""
     return getattr(tool, "description", "") or ""
 
 

@@ -1,4 +1,4 @@
-﻿"""Level 1 -- Bi-encoder embedding filter.
+"""Level 1 -- Bi-encoder embedding filter.
 
 Uses ``intfloat/multilingual-e5-base`` to produce sentence embeddings for both
 the user intent and all tool text representations (``"name: description"``).
@@ -19,12 +19,14 @@ Graceful degradation
 If ``sentence-transformers`` is not installed or the model fails to load, the
 filter silently returns the first ``top_k`` tools from the original pool.
 """
+
 from __future__ import annotations
 
 import hashlib
 import logging
 import threading
-from typing import Any, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 
 try:
     import numpy as np  # type: ignore
@@ -41,8 +43,8 @@ T = TypeVar("T")
 # ---------------------------------------------------------------------------
 # Model singleton -- one per (model_name, process) pair, lazy-loaded
 # ---------------------------------------------------------------------------
-_model: Optional[Any] = None
-_model_name_loaded: Optional[str] = None
+_model: Any | None = None
+_model_name_loaded: str | None = None
 _model_lock = threading.Lock()
 _model_attempted: bool = False
 
@@ -50,10 +52,10 @@ _model_attempted: bool = False
 # Bounded to _MAX_CACHE_SIZE entries with FIFO eviction (dict keeps insertion order, Python 3.7+).
 _MAX_CACHE_SIZE: int = 32
 _cache_lock = threading.Lock()
-_embedding_cache: Dict[str, Any] = {}
+_embedding_cache: dict[str, Any] = {}
 
 
-def _pool_cache_key(texts: List[str]) -> str:
+def _pool_cache_key(texts: list[str]) -> str:
     """Return a stable hex digest for a list of tool text strings."""
     h = hashlib.md5()
     for t in texts:
@@ -61,7 +63,7 @@ def _pool_cache_key(texts: List[str]) -> str:
     return h.hexdigest()
 
 
-def _get_model(model_name: str) -> Optional[Any]:
+def _get_model(model_name: str) -> Any | None:
     """Return the SentenceTransformer singleton, loading it on first call.
 
     Thread-safe.  Returns ``None`` if the model cannot be loaded; will NOT
@@ -123,7 +125,7 @@ class EmbedderL1(Generic[T]):
     # Warm-up
     # ------------------------------------------------------------------
 
-    def warm_up(self, tools: Optional[Sequence[Any]] = None) -> bool:
+    def warm_up(self, tools: Sequence[Any] | None = None) -> bool:
         """Pre-load the model and optionally pre-encode a tool pool.
 
         Call this once during application startup (in a background thread
@@ -150,9 +152,7 @@ class EmbedderL1(Generic[T]):
                 texts = [tool_as_text(t) for t in tools]
                 key = _pool_cache_key(texts)
                 if key not in _embedding_cache:
-                    logger.debug(
-                        "EmbedderL1 warm_up: pre-encoding %d tools into cache", len(texts)
-                    )
+                    logger.debug("EmbedderL1 warm_up: pre-encoding %d tools into cache", len(texts))
                     embs: Any = model.encode(
                         texts,
                         normalize_embeddings=True,
@@ -177,8 +177,8 @@ class EmbedderL1(Generic[T]):
         intent: str,
         tools: Sequence[T],
         *,
-        forced_indices: Optional[List[int]] = None,
-    ) -> Tuple[List[T], LevelMetrics]:
+        forced_indices: list[int] | None = None,
+    ) -> tuple[list[T], LevelMetrics]:
         """Filter *tools* by cosine similarity to *intent*.
 
         Parameters
@@ -291,4 +291,3 @@ class EmbedderL1(Generic[T]):
             metrics.skipped = True
             metrics.output_count = min(n, self.top_k)
             return list(tools[: self.top_k]), metrics
-

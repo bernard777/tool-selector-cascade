@@ -1,4 +1,4 @@
-﻿"""Level 3 -- Micro-LLM final picker.
+"""Level 3 -- Micro-LLM final picker.
 
 Sends the top-5 candidates from Level 2 to a fast, cheap LLM and asks it
 to reason about which single tool best matches the user intent.
@@ -20,13 +20,15 @@ If the API key is missing, the provider is unsupported, or the call fails
 (network error, timeout, unparseable response), the level transparently returns
 the top-1 tool from Level 2 with ``skipped=True`` in the metrics.
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import os
 import re
-from typing import Any, Generic, List, Optional, Sequence, Tuple, TypeVar
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 
 from tool_selector_cascade.metrics import LevelMetrics, Timer
 from tool_selector_cascade.types import tool_as_text
@@ -57,7 +59,7 @@ def _build_tool_list(tools: Sequence[Any]) -> str:
     return "\n".join(f"[{i}] {tool_as_text(t)}" for i, t in enumerate(tools))
 
 
-def _parse_index(text: str, max_index: int) -> Optional[int]:
+def _parse_index(text: str, max_index: int) -> int | None:
     """Extract the first valid 0-based integer from an LLM response."""
     text = text.strip()
     if re.fullmatch(r"\d+", text):
@@ -75,6 +77,7 @@ def _parse_index(text: str, max_index: int) -> Optional[int]:
 # Provider-specific callers
 # ---------------------------------------------------------------------------
 
+
 async def _call_anthropic(
     intent: str,
     tools: Sequence[Any],
@@ -82,7 +85,7 @@ async def _call_anthropic(
     model: str,
     api_key: str,
     timeout: float,
-) -> Tuple[Optional[int], float]:
+) -> tuple[int | None, float]:
     """Call Anthropic and return (tool_index, cost_usd)."""
     from anthropic import AsyncAnthropic  # type: ignore
 
@@ -95,20 +98,14 @@ async def _call_anthropic(
         messages=[
             {
                 "role": "user",
-                "content": _USER_TEMPLATE.format(
-                    intent=intent, tool_list=_build_tool_list(tools)
-                ),
+                "content": _USER_TEMPLATE.format(intent=intent, tool_list=_build_tool_list(tools)),
             }
         ],
         timeout=timeout,
     )
     text = response.content[0].text if response.content else ""
     usage = getattr(response, "usage", None)
-    tokens = (
-        getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0)
-        if usage
-        else 0
-    )
+    tokens = getattr(usage, "input_tokens", 0) + getattr(usage, "output_tokens", 0) if usage else 0
     # Haiku 4.5: $0.25/M input, $1.25/M output
     cost = tokens * 0.00000025
     return _parse_index(text, len(tools)), cost
@@ -121,7 +118,7 @@ async def _call_openai(
     model: str,
     api_key: str,
     timeout: float,
-) -> Tuple[Optional[int], float]:
+) -> tuple[int | None, float]:
     """Call OpenAI and return (tool_index, cost_usd)."""
     from openai import AsyncOpenAI  # type: ignore
 
@@ -134,23 +131,15 @@ async def _call_openai(
             {"role": "system", "content": _SYSTEM_PROMPT},
             {
                 "role": "user",
-                "content": _USER_TEMPLATE.format(
-                    intent=intent, tool_list=_build_tool_list(tools)
-                ),
+                "content": _USER_TEMPLATE.format(intent=intent, tool_list=_build_tool_list(tools)),
             },
         ],
         timeout=timeout,
     )
-    text = (
-        response.choices[0].message.content or ""
-        if response.choices
-        else ""
-    )
+    text = response.choices[0].message.content or "" if response.choices else ""
     usage = response.usage
     tokens = (
-        getattr(usage, "prompt_tokens", 0) + getattr(usage, "completion_tokens", 0)
-        if usage
-        else 0
+        getattr(usage, "prompt_tokens", 0) + getattr(usage, "completion_tokens", 0) if usage else 0
     )
     # gpt-4o-mini: $0.15/M input
     cost = tokens * 0.00000015
@@ -164,7 +153,7 @@ async def _call_google(
     model: str,
     api_key: str,
     timeout: float,
-) -> Tuple[Optional[int], float]:
+) -> tuple[int | None, float]:
     """Call Google Generative AI and return (tool_index, cost_usd).
 
     ``genai.configure()`` sets module-global state in ``google-generativeai``.
@@ -208,6 +197,7 @@ def _get_genai() -> Any:
     import google.generativeai as genai  # type: ignore  # noqa: PLC0415
 
     return genai
+
 
 # ---------------------------------------------------------------------------
 # Security helpers
@@ -265,7 +255,7 @@ class LLMPickerL3(Generic[T]):
         self,
         provider: str = "anthropic",
         model: str = "claude-haiku-4-5",
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         timeout: float = 30.0,
     ) -> None:
         self.provider = provider.lower()
@@ -273,7 +263,7 @@ class LLMPickerL3(Generic[T]):
         self.timeout = timeout
         self._api_key = api_key
 
-    def _resolve_api_key(self) -> Optional[str]:
+    def _resolve_api_key(self) -> str | None:
         if self._api_key:
             return self._api_key
         env_var = _PROVIDER_ENV_KEYS.get(self.provider)
@@ -283,7 +273,7 @@ class LLMPickerL3(Generic[T]):
         self,
         intent: str,
         tools: Sequence[T],
-    ) -> Tuple[List[T], LevelMetrics]:
+    ) -> tuple[list[T], LevelMetrics]:
         """Ask the LLM to pick the single best tool from *tools*.
 
         Falls back to ``tools[0]`` (best reranker score) if the LLM call fails,
@@ -362,4 +352,3 @@ class LLMPickerL3(Generic[T]):
             metrics.error = safe_msg
             metrics.output_count = 1
             return [tools[0]], metrics
-

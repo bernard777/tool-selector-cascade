@@ -1,4 +1,4 @@
-﻿"""Level 2 -- Cross-encoder reranker.
+"""Level 2 -- Cross-encoder reranker.
 
 Re-scores the top-20 candidates from Level 1 using a cross-encoder model
 that jointly attends to both the intent and the tool text.  This is
@@ -17,11 +17,13 @@ Graceful degradation
 If ``sentence-transformers`` is not installed or the model is unavailable,
 the level returns the first ``top_k`` candidates from Level 1 unchanged.
 """
+
 from __future__ import annotations
 
 import logging
 import threading
-from typing import Any, Generic, List, Optional, Sequence, Tuple, TypeVar
+from collections.abc import Sequence
+from typing import Any, Generic, TypeVar
 
 from tool_selector_cascade.metrics import LevelMetrics, Timer
 from tool_selector_cascade.types import tool_as_text
@@ -33,13 +35,13 @@ T = TypeVar("T")
 # ---------------------------------------------------------------------------
 # Model singleton
 # ---------------------------------------------------------------------------
-_reranker: Optional[Any] = None
-_reranker_name_loaded: Optional[str] = None
+_reranker: Any | None = None
+_reranker_name_loaded: str | None = None
 _reranker_lock = threading.Lock()
 _reranker_attempted: bool = False
 
 
-def _get_reranker(model_name: str) -> Optional[Any]:
+def _get_reranker(model_name: str) -> Any | None:
     """Return the CrossEncoder singleton, loading it on first call.
 
     Thread-safe.  Returns ``None`` on load failure and does not retry.
@@ -109,9 +111,9 @@ class RerankerL2(Generic[T]):
         intent: str,
         tools: Sequence[T],
         *,
-        forced_indices: Optional[List[int]] = None,
-        top_k: Optional[int] = None,
-    ) -> Tuple[List[T], LevelMetrics]:
+        forced_indices: list[int] | None = None,
+        top_k: int | None = None,
+    ) -> tuple[list[T], LevelMetrics]:
         """Re-score *tools* by cross-encoder relevance to *intent*.
 
         Parameters
@@ -139,7 +141,9 @@ class RerankerL2(Generic[T]):
 
         reranker = _get_reranker(self.model_name)
         if reranker is None:
-            logger.warning("RerankerL2: model unavailable -- returning candidates[:%d]", effective_top_k)
+            logger.warning(
+                "RerankerL2: model unavailable -- returning candidates[:%d]", effective_top_k
+            )
             metrics.skipped = True
             metrics.output_count = min(n, effective_top_k)
             return list(tools[:effective_top_k]), metrics
@@ -154,9 +158,7 @@ class RerankerL2(Generic[T]):
             _forced = list(forced_indices or [])
             remaining_slots = max(0, effective_top_k - len(_forced))
 
-            candidates = [
-                (i, float(scores[i])) for i in range(n) if i not in set(_forced)
-            ]
+            candidates = [(i, float(scores[i])) for i in range(n) if i not in set(_forced)]
             candidates.sort(key=lambda x: x[1], reverse=True)
             top_indices = _forced + [i for i, _ in candidates[:remaining_slots]]
 
@@ -178,4 +180,3 @@ class RerankerL2(Generic[T]):
             metrics.skipped = True
             metrics.output_count = min(n, effective_top_k)
             return list(tools[:effective_top_k]), metrics
-

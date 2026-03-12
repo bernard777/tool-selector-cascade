@@ -1,7 +1,8 @@
-﻿"""Shared fixtures for tool_selector_cascade tests."""
+"""Shared fixtures for tool_selector_cascade tests."""
+
 from __future__ import annotations
 
-from typing import Any, List
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,7 +17,7 @@ def _make_tool(name: str, description: str = "") -> MagicMock:
 
 
 @pytest.fixture
-def sample_tools() -> List[Any]:
+def sample_tools() -> list[Any]:
     """A pool of 25 mock tools covering diverse categories."""
     return [
         _make_tool("gmail_send_email", "Send an email via Gmail"),
@@ -58,7 +59,6 @@ def web_intent() -> str:
 
 
 @pytest.fixture
-def small_tools(sample_tools: List[Any]) -> List[Any]:
+def small_tools(sample_tools: list[Any]) -> list[Any]:
     """A pool of 3 tools -- below the min_pool_size threshold."""
     return sample_tools[:3]
-

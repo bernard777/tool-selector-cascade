@@ -29,6 +29,7 @@ Usage
 -----
     python .github/scripts/ai_pr_reviewer.py --pr 42 --repo bernard777/tool-selector-cascade
 """
+
 from __future__ import annotations
 
 import argparse
@@ -38,8 +39,8 @@ import sys
 import textwrap
 from typing import Any
 
-from openai import OpenAI
 import requests
+from openai import OpenAI
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -48,8 +49,8 @@ import requests
 # GitHub Models endpoint — OpenAI-compatible, authenticated via GITHUB_TOKEN.
 # No separate secret needed: GITHUB_TOKEN is auto-injected in every workflow run.
 GITHUB_MODELS_ENDPOINT = "https://models.inference.ai.azure.com"
-MODEL = "gpt-4o"          # Change to "gpt-4o-mini" for higher rate limits
-MAX_DIFF_CHARS = 60_000    # Truncate very large diffs to stay within context
+MODEL = "gpt-4o"  # Change to "gpt-4o-mini" for higher rate limits
+MAX_DIFF_CHARS = 60_000  # Truncate very large diffs to stay within context
 GITHUB_API = "https://api.github.com"
 
 # ---------------------------------------------------------------------------
@@ -143,6 +144,7 @@ Check for:
 # GitHub API helpers
 # ---------------------------------------------------------------------------
 
+
 def _gh_headers(token: str) -> dict[str, str]:
     return {
         "Authorization": f"Bearer {token}",
@@ -195,6 +197,7 @@ def post_pr_review(
 # ---------------------------------------------------------------------------
 # AI review logic
 # ---------------------------------------------------------------------------
+
 
 def build_user_message(
     pr_meta: dict[str, Any],
@@ -286,7 +289,9 @@ def format_github_review(review: dict[str, Any]) -> str:
     lines: list[str] = []
     lines.append("## 🤖 AI Code Review — `tool-selector-cascade`")
     lines.append("")
-    lines.append(f"**Verdict:** {'✅ APPROVED' if verdict == 'APPROVE' else '❌ CHANGES REQUESTED'}")
+    lines.append(
+        f"**Verdict:** {'✅ APPROVED' if verdict == 'APPROVE' else '❌ CHANGES REQUESTED'}"
+    )
     lines.append("")
     lines.append(f"> {overall}")
     lines.append("")
@@ -336,6 +341,7 @@ def format_github_review(review: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="AI PR Reviewer for tool-selector-cascade")

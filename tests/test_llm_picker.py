@@ -1,10 +1,10 @@
-﻿"""Unit tests for the Level 3 micro-LLM picker (LLMPickerL3)."""
+"""Unit tests for the Level 3 micro-LLM picker (LLMPickerL3)."""
+
 from __future__ import annotations
 
 import asyncio
-import sys
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -274,6 +274,7 @@ class TestCallGoogleSecFixes:
 
         def _fake_model_factory(*args: Any, **kwargs: Any) -> Any:
             if call_count[0] == 1:
+
                 class _SlowModel:
                     async def generate_content_async(self, *a: Any, **kw: Any) -> Any:
                         events.append("gen_1_start")
@@ -282,14 +283,17 @@ class TestCallGoogleSecFixes:
                         r = MagicMock()
                         r.text = "0"
                         return r
+
                 return _SlowModel()
             else:
+
                 class _FastModel:
                     async def generate_content_async(self, *a: Any, **kw: Any) -> Any:
                         events.append("gen_2_start")
                         r = MagicMock()
                         r.text = "0"
                         return r
+
                 return _FastModel()
 
         mock_genai = MagicMock()
@@ -327,17 +331,21 @@ class TestCallGoogleSecFixes:
         def _model_factory(*args: Any, **kwargs: Any) -> Any:
             call_count[0] += 1
             if call_count[0] == 1:
+
                 class _HangModel:
                     async def generate_content_async(self, *a: Any, **kw: Any) -> Any:
                         await asyncio.sleep(10)
                         return MagicMock()
+
                 return _HangModel()
             else:
+
                 class _FastModel:
                     async def generate_content_async(self, *a: Any, **kw: Any) -> Any:
                         r = MagicMock()
                         r.text = "0"
                         return r
+
                 return _FastModel()
 
         mock_genai = MagicMock()
@@ -398,7 +406,7 @@ class TestPickSecurityFixes:
         tools = [_make_tool(f"t_{i}") for i in range(3)]
 
         async def _timeout_google(*args: Any, **kwargs: Any) -> Any:
-            raise asyncio.TimeoutError()
+            raise TimeoutError()
 
         with patch.dict(
             "tool_selector_cascade.levels.llm_picker._PROVIDER_CALLERS",
@@ -418,8 +426,7 @@ class TestPickSecurityFixes:
 
         async def _leaky_caller(*args: Any, **kwargs: Any) -> Any:
             raise ValueError(
-                f"Authentication failed: invalid key {secret_key}, "
-                "please check your account."
+                f"Authentication failed: invalid key {secret_key}, please check your account."
             )
 
         with patch.dict(
@@ -472,4 +479,3 @@ class TestPickSecurityFixes:
 
         assert result[0].name == "t_0"
         assert metrics.error == expected_msg
-

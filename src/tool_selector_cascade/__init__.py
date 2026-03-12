@@ -1,4 +1,4 @@
-﻿"""tool-selector-cascade
+"""tool-selector-cascade
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 A 3-level cascading tool selector for AI agents.
@@ -40,10 +40,12 @@ Convenience function
     # One-liner synchronous filtering (Level 1 + 2, no LLM cost)
     relevant = select_tools_for_intent(intent, tools, top_k=5)
 """
+
 from __future__ import annotations
 
 import threading
-from typing import Any, List, Optional, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 from tool_selector_cascade.cascade import CascadeSelector
 from tool_selector_cascade.config import CascadeConfig
@@ -63,7 +65,7 @@ __all__ = [
 # Convenience function — synchronous one-liner API
 # ---------------------------------------------------------------------------
 
-_default_selector: Optional[CascadeSelector[Any]] = None
+_default_selector: CascadeSelector[Any] | None = None
 _default_selector_lock = threading.Lock()
 
 
@@ -82,8 +84,8 @@ def select_tools_for_intent(
     *,
     top_k: int = 5,
     min_threshold: int = 0,
-    always_include_prefixes: Optional[List[str]] = None,
-) -> List[Any]:
+    always_include_prefixes: list[str] | None = None,
+) -> list[Any]:
     """Synchronous convenience function for Level 1 + 2 filtering (no LLM cost).
 
     Uses a module-level :class:`CascadeSelector` singleton so no setup is
@@ -122,7 +124,7 @@ def select_tools_for_intent(
     return result
 
 
-def warm_up(tools: Optional[Sequence[Any]] = None) -> bool:
+def warm_up(tools: Sequence[Any] | None = None) -> bool:
     """Pre-load Level 1 and Level 2 models for the module-level selector.
 
     Call this once at application startup (ideally in a background thread) to
@@ -154,4 +156,3 @@ def warm_up(tools: Optional[Sequence[Any]] = None) -> bool:
         ).start()
     """
     return _get_default_selector().warm_up(tools)
-
