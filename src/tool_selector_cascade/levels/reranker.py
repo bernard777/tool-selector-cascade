@@ -54,7 +54,7 @@ def _get_reranker(model_name: str) -> Any | None:
         if _reranker_attempted and _reranker_name_loaded == model_name:
             return None
         try:
-            from sentence_transformers import CrossEncoder  # type: ignore
+            from sentence_transformers import CrossEncoder
 
             logger.info("RerankerL2: loading model '%s' ...", model_name)
             _reranker = CrossEncoder(model_name)
@@ -142,7 +142,8 @@ class RerankerL2(Generic[T]):
         reranker = _get_reranker(self.model_name)
         if reranker is None:
             logger.warning(
-                "RerankerL2: model unavailable -- returning candidates[:%d]", effective_top_k
+                "RerankerL2: model unavailable -- returning candidates[:%d]",
+                effective_top_k,
             )
             metrics.skipped = True
             metrics.output_count = min(n, effective_top_k)

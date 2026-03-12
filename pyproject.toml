@@ -68,6 +68,10 @@ python_version = "3.11"
 strict = true
 ignore_missing_imports = true
 
+[tool.black]
+target-version = ["py311"]
+line-length = 100
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100

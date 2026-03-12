@@ -29,9 +29,9 @@ from collections.abc import Sequence
 from typing import Any, Generic, TypeVar
 
 try:
-    import numpy as np  # type: ignore
+    import numpy as np
 except ImportError:
-    np = None  # type: ignore
+    np = None  # type: ignore[assignment]
 
 from tool_selector_cascade.metrics import LevelMetrics, Timer
 from tool_selector_cascade.types import tool_as_text
@@ -77,7 +77,7 @@ def _get_model(model_name: str) -> Any | None:
         if _model_attempted and _model_name_loaded == model_name:
             return None
         try:
-            from sentence_transformers import SentenceTransformer  # type: ignore
+            from sentence_transformers import SentenceTransformer
 
             logger.info("EmbedderL1: loading model '%s' ...", model_name)
             _model = SentenceTransformer(model_name)
@@ -152,7 +152,10 @@ class EmbedderL1(Generic[T]):
                 texts = [tool_as_text(t) for t in tools]
                 key = _pool_cache_key(texts)
                 if key not in _embedding_cache:
-                    logger.debug("EmbedderL1 warm_up: pre-encoding %d tools into cache", len(texts))
+                    logger.debug(
+                        "EmbedderL1 warm_up: pre-encoding %d tools into cache",
+                        len(texts),
+                    )
                     embs: Any = model.encode(
                         texts,
                         normalize_embeddings=True,

@@ -99,7 +99,11 @@ class TestLLMPickerL3Pick:
     @pytest.mark.asyncio
     async def test_anthropic_caller_returns_correct_tool(self) -> None:
         picker = LLMPickerL3(provider="anthropic", api_key="sk-fake")
-        tools = [_make_tool("gmail_send"), _make_tool("web_search"), _make_tool("calendar")]
+        tools = [
+            _make_tool("gmail_send"),
+            _make_tool("web_search"),
+            _make_tool("calendar"),
+        ]
 
         async def _fake_anthropic(intent: Any, tools: Any, **kwargs: Any) -> Any:
             return 1, 0.00001  # picks index 1 = web_search
@@ -212,7 +216,9 @@ class TestCallGoogleSecFixes:
     """Tests verifying SEC-01 (_google_lock) and SEC-02 (timeout) fixes in _call_google."""
 
     @pytest.mark.asyncio
-    async def test_call_google_successful_invocation_returns_correct_index(self) -> None:
+    async def test_call_google_successful_invocation_returns_correct_index(
+        self,
+    ) -> None:
         """_call_google returns (index, cost) correctly after security fixes (regression)."""
 
         class _FakeModel:
@@ -229,7 +235,11 @@ class TestCallGoogleSecFixes:
 
         with patch(_GET_GENAI_PATH, return_value=mock_genai):
             idx, cost = await _call_google(
-                "intent", tools, model="gemini-flash-lite", api_key="test-key", timeout=5.0
+                "intent",
+                tools,
+                model="gemini-flash-lite",
+                api_key="test-key",
+                timeout=5.0,
             )
 
         assert idx == 2
@@ -315,9 +325,9 @@ class TestCallGoogleSecFixes:
 
         # Lock guarantees: configure_1 → gen_1_start → gen_1_end → configure_2 → gen_2_start
         assert events.index("configure_1") < events.index("gen_1_start")
-        assert events.index("gen_1_end") < events.index("configure_2"), (
-            "configure_2 must not run while gen_1 is still executing (lock violation)"
-        )
+        assert events.index("gen_1_end") < events.index(
+            "configure_2"
+        ), "configure_2 must not run while gen_1 is still executing (lock violation)"
         assert events.index("configure_2") < events.index("gen_2_start")
 
     @pytest.mark.asyncio
@@ -436,9 +446,9 @@ class TestPickSecurityFixes:
             result, metrics = await picker.pick("intent", tools)
 
         assert result[0].name == "t_0"
-        assert secret_key not in (metrics.error or ""), (
-            "Raw API key must not appear in metrics.error"
-        )
+        assert secret_key not in (
+            metrics.error or ""
+        ), "Raw API key must not appear in metrics.error"
         assert "[REDACTED]" in (metrics.error or "")
 
     @pytest.mark.asyncio

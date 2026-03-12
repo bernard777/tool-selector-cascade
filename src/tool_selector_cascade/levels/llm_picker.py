@@ -87,7 +87,7 @@ async def _call_anthropic(
     timeout: float,
 ) -> tuple[int | None, float]:
     """Call Anthropic and return (tool_index, cost_usd)."""
-    from anthropic import AsyncAnthropic  # type: ignore
+    from anthropic import AsyncAnthropic
 
     client = AsyncAnthropic(api_key=api_key)
     response = await client.messages.create(
@@ -120,7 +120,7 @@ async def _call_openai(
     timeout: float,
 ) -> tuple[int | None, float]:
     """Call OpenAI and return (tool_index, cost_usd)."""
-    from openai import AsyncOpenAI  # type: ignore
+    from openai import AsyncOpenAI
 
     client = AsyncOpenAI(api_key=api_key)
     response = await client.chat.completions.create(
@@ -194,7 +194,7 @@ def _get_genai() -> Any:
     Extracted as a top-level function so tests can patch it without manipulating
     ``sys.modules``.
     """
-    import google.generativeai as genai  # type: ignore  # noqa: PLC0415
+    import google.generativeai as genai  # noqa: PLC0415
 
     return genai
 
@@ -314,7 +314,8 @@ class LLMPickerL3(Generic[T]):
         caller = _PROVIDER_CALLERS.get(self.provider)
         if caller is None:
             logger.warning(
-                "LLMPickerL3: unsupported provider '%s' -- returning top-1", self.provider
+                "LLMPickerL3: unsupported provider '%s' -- returning top-1",
+                self.provider,
             )
             metrics.skipped = True
             metrics.output_count = 1

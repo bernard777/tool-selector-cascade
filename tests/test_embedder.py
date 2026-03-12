@@ -75,7 +75,10 @@ class TestEmbedderL1Filter:
         pool_emb[9] = np.zeros(8, dtype=np.float32) - 0.9
 
         mock_model = MagicMock()
-        mock_model.encode.side_effect = [pool_emb, intent_emb]  # shape (1,8) so [0] gives (8,)
+        mock_model.encode.side_effect = [
+            pool_emb,
+            intent_emb,
+        ]  # shape (1,8) so [0] gives (8,)
 
         with patch("tool_selector_cascade.levels.embedder._get_model", return_value=mock_model):
             result, _ = embedder.filter("intent", tools, forced_indices=forced)
