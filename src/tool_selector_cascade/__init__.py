@@ -49,7 +49,7 @@ from tool_selector_cascade.cascade import CascadeSelector
 from tool_selector_cascade.config import CascadeConfig
 from tool_selector_cascade.metrics import SelectionMetrics
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "CascadeSelector",
