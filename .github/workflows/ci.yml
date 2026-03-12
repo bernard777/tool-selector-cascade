@@ -121,7 +121,7 @@ jobs:
           python -c "import tool_selector_cascade; print(tool_selector_cascade.__version__)"
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist-${{ github.sha }}
           path: dist/
