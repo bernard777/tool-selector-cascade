@@ -72,6 +72,10 @@ ignore_missing_imports = true
 target-version = ["py311"]
 line-length = 100
 
+[tool.isort]
+profile = "black"
+line_length = 100
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100
