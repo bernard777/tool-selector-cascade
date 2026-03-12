@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   ai-review:
-    name: AI Code Review (Claude)
+    name: AI Code Review (GitHub Models)
     runs-on: ubuntu-latest
     # Skip draft PRs unless manually triggered
     if: github.event.pull_request.draft == false || github.event_name == 'workflow_dispatch'
@@ -37,11 +37,12 @@ jobs:
 
       - name: Install AI reviewer dependencies
         run: |
-          pip install anthropic requests
+          pip install openai requests
 
       - name: Run AI PR Reviewer
+        # GITHUB_TOKEN is automatically injected — no extra secret needed.
+        # It authenticates both the GitHub REST API calls AND GitHub Models inference.
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           REPO: ${{ github.repository }}
