@@ -25,17 +25,17 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "numpy>=1.24.0",
+    "numpy>=2.4.4",
 ]
 
 [project.optional-dependencies]
-level1 = ["sentence-transformers>=3.0.0"]
-level2 = ["sentence-transformers>=3.0.0"]
+level1 = ["sentence-transformers>=5.4.0"]
+level2 = ["sentence-transformers>=5.4.0"]
 level3-openai = ["openai>=1.7.0"]
 level3-anthropic = ["anthropic>=0.75.0"]
 level3-google = ["google-generativeai>=0.3.0"]
 all = [
-    "sentence-transformers>=3.0.0",
+    "sentence-transformers>=5.4.0",
     "openai>=1.7.0",
     "anthropic>=0.75.0",
     "google-generativeai>=0.3.0",
