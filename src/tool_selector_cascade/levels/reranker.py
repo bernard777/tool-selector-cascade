@@ -1,4 +1,4 @@
-"""Level 2 -- Cross-encoder reranker.
+﻿"""Level 2 -- Cross-encoder reranker.
 
 Re-scores the top-20 candidates from Level 1 using a cross-encoder model
 that jointly attends to both the intent and the tool text.  This is
@@ -17,31 +17,69 @@ Graceful degradation
 If ``sentence-transformers`` is not installed or the model is unavailable,
 the level returns the first ``top_k`` candidates from Level 1 unchanged.
 """
-
 from __future__ import annotations
 
 import logging
 import threading
-from collections.abc import Sequence
-from typing import Any, Generic, TypeVar
+from typing import Any, Dict, Generic, List, Optional, Sequence, Tuple, TypeVar
 
 from tool_selector_cascade.metrics import LevelMetrics, Timer
+from tool_selector_cascade import tool_category_boost
 from tool_selector_cascade.types import tool_as_text
 
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
 
+INFRASTRUCTURE_FIXED_SCORE = 1.0
+
+
+def _normalize_category(raw: Any) -> str:
+    if not isinstance(raw, str):
+        return ""
+    return raw.strip().lower()
+
+
+def _extract_tool_category(tool: Any) -> str:
+    """Best-effort extraction of a tool category from duck-typed tool payloads."""
+    # Object attributes
+    for attr in ("category", "tool_category"):
+        value = _normalize_category(getattr(tool, attr, None))
+        if value:
+            return value
+
+    # Dict-like payloads (tool dict or OpenAI-like schema wrappers)
+    if isinstance(tool, dict):
+        for key in ("category", "tool_category"):
+            value = _normalize_category(tool.get(key))
+            if value:
+                return value
+
+        metadata = tool.get("metadata")
+        if isinstance(metadata, dict):
+            for key in ("category", "tool_category"):
+                value = _normalize_category(metadata.get(key))
+                if value:
+                    return value
+
+        function_payload = tool.get("function")
+        if isinstance(function_payload, dict):
+            value = _normalize_category(function_payload.get("category") or function_payload.get("tool_category"))
+            if value:
+                return value
+
+    return ""
+
 # ---------------------------------------------------------------------------
 # Model singleton
 # ---------------------------------------------------------------------------
-_reranker: Any | None = None
-_reranker_name_loaded: str | None = None
+_reranker: Optional[Any] = None
+_reranker_name_loaded: Optional[str] = None
 _reranker_lock = threading.Lock()
 _reranker_attempted: bool = False
 
 
-def _get_reranker(model_name: str) -> Any | None:
+def _get_reranker(model_name: str) -> Optional[Any]:
     """Return the CrossEncoder singleton, loading it on first call.
 
     Thread-safe.  Returns ``None`` on load failure and does not retry.
@@ -54,7 +92,7 @@ def _get_reranker(model_name: str) -> Any | None:
         if _reranker_attempted and _reranker_name_loaded == model_name:
             return None
         try:
-            from sentence_transformers import CrossEncoder
+            from sentence_transformers import CrossEncoder  # type: ignore
 
             logger.info("RerankerL2: loading model '%s' ...", model_name)
             _reranker = CrossEncoder(model_name)
@@ -111,9 +149,9 @@ class RerankerL2(Generic[T]):
         intent: str,
         tools: Sequence[T],
         *,
-        forced_indices: list[int] | None = None,
-        top_k: int | None = None,
-    ) -> tuple[list[T], LevelMetrics]:
+        forced_indices: Optional[List[int]] = None,
+        top_k: Optional[int] = None,
+    ) -> Tuple[List[T], LevelMetrics]:
         """Re-score *tools* by cross-encoder relevance to *intent*.
 
         Parameters
@@ -141,25 +179,50 @@ class RerankerL2(Generic[T]):
 
         reranker = _get_reranker(self.model_name)
         if reranker is None:
-            logger.warning(
-                "RerankerL2: model unavailable -- returning candidates[:%d]",
-                effective_top_k,
-            )
+            logger.warning("RerankerL2: model unavailable -- returning candidates[:%d]", effective_top_k)
             metrics.skipped = True
             metrics.output_count = min(n, effective_top_k)
             return list(tools[:effective_top_k]), metrics
 
         try:
             with Timer() as timer:
-                pairs = [(intent, tool_as_text(t)) for t in tools]
-                scores: Any = reranker.predict(pairs, show_progress_bar=False)
+                categories = [_extract_tool_category(tool) for tool in tools]
+                infra_categories = {_normalize_category(value) for value in tool_category_boost.infrastructure}
+                category_weights = {
+                    _normalize_category(key): float(value)
+                    for key, value in getattr(tool_category_boost, "weights", {}).items()
+                }
+
+                semantic_indices = [
+                    index
+                    for index, category in enumerate(categories)
+                    if category not in infra_categories
+                ]
+
+                score_by_index: Dict[int, float] = {}
+                if semantic_indices:
+                    pairs = [(intent, tool_as_text(tools[index])) for index in semantic_indices]
+                    semantic_scores: Any = reranker.predict(pairs, show_progress_bar=False)
+                    for local_rank, tool_index in enumerate(semantic_indices):
+                        category = categories[tool_index]
+                        score_by_index[tool_index] = float(semantic_scores[local_rank]) + category_weights.get(category, 0.0)
+
+                infra_indices = [
+                    index
+                    for index, category in enumerate(categories)
+                    if category in infra_categories
+                ]
+                for tool_index in infra_indices:
+                    score_by_index[tool_index] = INFRASTRUCTURE_FIXED_SCORE
 
             metrics.latency_ms = timer.elapsed_ms
 
             _forced = list(forced_indices or [])
             remaining_slots = max(0, effective_top_k - len(_forced))
 
-            candidates = [(i, float(scores[i])) for i in range(n) if i not in set(_forced)]
+            candidates = [
+                (i, score_by_index.get(i, INFRASTRUCTURE_FIXED_SCORE)) for i in range(n) if i not in set(_forced)
+            ]
             candidates.sort(key=lambda x: x[1], reverse=True)
             top_indices = _forced + [i for i, _ in candidates[:remaining_slots]]
 
@@ -181,3 +244,4 @@ class RerankerL2(Generic[T]):
             metrics.skipped = True
             metrics.output_count = min(n, effective_top_k)
             return list(tools[:effective_top_k]), metrics
+
