@@ -59,7 +59,10 @@ class CascadeConfig:
     embedder_min_pool: int = 20
 
     # Level 2 -- Reranker
-    reranker_model: str = "Alibaba-NLP/gte-reranker-modernbert-base"
+    # NOTE: Alibaba-NLP/gte-reranker-modernbert-base requires transformers>=4.49
+    # (ModernBERT architecture).  The project pins transformers<4.47 for OmniParser
+    # compatibility, so we use a BERT-based cross-encoder that works on 4.46.x.
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     reranker_top_k: int = 5
     reranker_enabled: bool = True
 
